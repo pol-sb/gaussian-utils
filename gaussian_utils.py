@@ -7,37 +7,42 @@ import time
 import re
 import pprint as pp
 
-DFT_RE = re.compile(r'SCF Done:.*=\s+([^\n]+\d+\.\d+)')
-DFT_FREQ = re.compile(r'Frequencies -- (.*)')
-FR_RE = re.compile(r'Free Energies=\s+([^\n]+\d+\.\d+)')
-ENT_RE = re.compile(r'Enthalpies=\s+([^\n]+\d+\.\d+)')
-INP_LINE_RE = re.compile(r'----\n \#(.*)\n-*')
+DFT_RE = re.compile(r"SCF Done:.*=\s+([^\n]+\d+\.\d+)")
+DFT_FREQ = re.compile(r"Frequencies -- (.*)")
+FR_RE = re.compile(r"Free Energies=\s+([^\n]+\d+\.\d+)")
+ENT_RE = re.compile(r"Enthalpies=\s+([^\n]+\d+\.\d+)")
+INP_LINE_RE = re.compile(r"----\n \#(.*)\n-*")
 TERM_RE = re.compile(r"Normal termination of Gaussian 09")
 AM1_RE = re.compile(r"")
 
+
 def get_calc_type(file):
 
-    if file.endswith('.gjf'):
-        with open(file, 'r') as f:
+    if file.endswith(".gjf"):
+        with open(file, "r") as f:
             fil_lines = f.readlines()
-            calc_type = [line.replace('#','').strip() for line in fil_lines if "#" in line]
+            calc_type = [
+                line.replace("#", "").strip()
+                for line in fil_lines
+                if "#" in line
+            ]
             return calc_type[0]
 
-    elif file.endswith('.log') or file.endswith('.out'):
-        with open(file, 'r') as f:
+    elif file.endswith(".log") or file.endswith(".out"):
+        with open(file, "r") as f:
             text = f.read()
         calc_type = re.search(INP_LINE_RE, text)
-        #calc_type = INP_LINE_RE.findall(text)
+        # calc_type = INP_LINE_RE.findall(text)
         line = calc_type.group(1)
-        line = line.replace("#","").strip()
-        #print(line[0].replace("#", "").strip())
+        line = line.replace("#", "").strip()
+        # print(line[0].replace("#", "").strip())
 
         return line
 
 
 def get_duration(t1, t2):
     units = ["h", "min", "s"]
-    dur_s = t2-t1
+    dur_s = t2 - t1
 
     dur_h = int(dur_s / 3600)
     dur_s -= dur_h * 3600
@@ -55,47 +60,56 @@ def get_duration(t1, t2):
     dur_final = " ".join(duration)
     return dur_final
 
-def parse_calc_type(file:str, job_line: str):
+
+def parse_calc_type(file: str, job_line: str):
     result_dict = {}
 
-    with open(file, 'r') as f:
+    with open(file, "r") as f:
         text = f.read()
 
-    if 'opt' in job_line:
+    if "opt" in job_line:
         energ = get_energies(text, job_line)
-        result_dict['Energy'] = energ
+        result_dict["Energy"] = energ
 
         enthalp = get_enthalpy(text)
-        result_dict['Enthalpy'] = enthalp
+        result_dict["Enthalpy"] = enthalp
 
         free = get_enthalpy(text)
-        result_dict['Free Energy'] = free
+        result_dict["Free Energy"] = free
 
-
-    if 'freq' in job_line:
+    if "freq" in job_line:
         freqs = get_freqs(text)
-        result_dict['Frequencies'] = freqs
+        result_dict["Frequencies"] = freqs
 
     return result_dict
 
+
 def print_results(file, result_dict):
-    print_color(f"\n - Results for calculation '{file}':", 'green')
+    print_color(f"\n - Results for calculation '{file}':", "green")
     res_avail = result_dict.keys()
 
-    if 'Energy' in res_avail:
-        print_color('\n    Energetics:', 'yellow')
+    if "Energy" in res_avail:
+        print_color("\n    Energetics:", "yellow")
         print(f"    Electronic Energy: {result_dict['Energy']}")
         print(f"    Enthalpy: {result_dict['Enthalpy']}")
         print(f"    Free Energy: {result_dict['Free Energy']} ")
 
-    if 'Frequencies' in res_avail:
-        print_color('\n    Frequencies:', 'yellow')
-        freq_arr = np.reshape(np.array(result_dict['Frequencies']),
-            (int(len(result_dict['Frequencies'])/3),3))
+    if "Frequencies" in res_avail:
+        print_color("\n    Frequencies:", "yellow")
+        freq_arr = np.reshape(
+            np.array(result_dict["Frequencies"]),
+            (int(len(result_dict["Frequencies"]) / 3), 3),
+        )
 
-        np.set_printoptions(formatter={"float":"{0:.1f}".format})
+        np.set_printoptions(formatter={"float": "{0:.1f}".format})
 
-        print("    "+ str(freq_arr).replace("\n","\n   ").replace("[","").replace("]",""))
+        print(
+            "    "
+            + str(freq_arr)
+            .replace("\n", "\n   ")
+            .replace("[", "")
+            .replace("]", "")
+        )
 
         n_imagin = np.count_nonzero(np.array(result_dict["Frequencies"]) < 0)
 
@@ -106,7 +120,7 @@ def print_results(file, result_dict):
         else:
             print("\n\tThere are imaginary frequencies.")
 
-    print_color(f"\n    Calculation '{file}' done.", 'green')
+    print_color(f"\n    Calculation '{file}' done.", "green")
 
 
 def check_termination(output):
@@ -122,7 +136,9 @@ def check_termination(output):
         termination = "Error"
 
     if termination != "Normal":
-        print_color(f"\n - [!] Calculation '{output}' terminated with ERRORS.", "red")
+        print_color(
+            f"\n - [!] Calculation '{output}' terminated with ERRORS.", "red"
+        )
 
     return termination
 
@@ -132,14 +148,19 @@ def run_calculation(file_list, cwd):
     for coun, fil in enumerate(file_list):
         curr_time = time.strftime("%H:%M:%S")
         t1 = time.time()
-        print_color(f"\n[{curr_time}] - Working on '{fil}' - {coun+1}/{len(file_list)}", "green")
+        print_color(
+            f"\n[{curr_time}] - Working on '{fil}' - {coun+1}/{len(file_list)}",
+            "green",
+        )
 
         job_line = get_calc_type(fil)
         print(job_line)
 
         output_file = f"{fil[:-4]}_res"
 
-        sb.call(["/home/tetsuo420/.g09/g09", f"{cwd}/{fil}", f"{cwd}/{output_file}"])
+        sb.call(
+            ["/home/tetsuo420/.g09/g09", f"{cwd}/{fil}", f"{cwd}/{output_file}"]
+        )
         t2 = time.time()
         duration = get_duration(t1, t2)
         print(f"Done - Elapsed time {duration}.\n")
@@ -147,13 +168,14 @@ def run_calculation(file_list, cwd):
 
 def get_energies(text, job_line):
 
-    if 'b3lyp' in job_line.lower() or 'am1' in job_line.lower():
+    if "b3lyp" in job_line.lower() or "am1" in job_line.lower():
         energy_value = float(DFT_RE.findall(text)[-1])
 
-    #if 'am1' in job_line.lower():
+    # if 'am1' in job_line.lower():
     #    energy_value = float(DFT_RE.findall(text)[-1])
 
     return energy_value
+
 
 def get_enthalpy(text):
     try:
@@ -162,9 +184,11 @@ def get_enthalpy(text):
         enth_val = None
     return enth_val
 
+
 def get_free(text):
     free_val = float(FR_RE.findall(text)[-1])
     return free_val
+
 
 def get_freqs(text):
     freq_list = []
@@ -172,6 +196,7 @@ def get_freqs(text):
     freq_list = [float(freq) for freq in freq_line.split()]
 
     return freq_list
+
 
 def print_color(text: str, color: str):
     d_col = {
@@ -185,6 +210,9 @@ def print_color(text: str, color: str):
     print(f"{d_col[color]}{text}{d_col['normal']}")
 
 
-if __name__ == '__main__':
-    print_color("This file is intended to be used as a module, please only use it for imports", "red")
-
+if __name__ == "__main__":
+    print_color(
+        "This file is intended to be used as a module, please only use it for"
+        " imports",
+        "red",
+    )

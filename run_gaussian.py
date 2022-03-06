@@ -8,12 +8,16 @@ import re
 import pprint as pp
 import gaussian_utils as gu
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     file_list = [fi for fi in os.listdir() if fi.endswith(".gjf")]
 
     if not file_list:
-        gu.print_color("\nERROR: No input files ('.gjf') found in the current working directory. Aborting.\n", 'red')
+        gu.print_color(
+            "\nERROR: No input files ('.gjf') found in the current working"
+            " directory. Aborting.\n",
+            "red",
+        )
         quit()
 
     cwd = os.getcwd()
@@ -32,7 +36,11 @@ if __name__ == '__main__':
             res_dict = gu.parse_calc_type(output_file, job_line)
             gu.print_results(output_file, res_dict)
         else:
-            gu.print_color(f" - [!] Calculation for file {output_file} Terminated with ERRORS.", "red")
+            gu.print_color(
+                f" - [!] Calculation for file {output_file} Terminated with"
+                " ERRORS.",
+                "red",
+            )
 
     res_list = [fi for fi in os.listdir() if fi.endswith(".log")]
     chk_list = [fi for fi in os.listdir() if fi.endswith(".chk")]
