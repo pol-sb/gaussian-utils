@@ -1,4 +1,4 @@
-#!/home/tetsuo420/.virtualenvs/TFG/bin/python
+#!/home/tetsuo420/.virtualenvs/modelling/bin/python
 
 # Check the results from g09 calculations
 

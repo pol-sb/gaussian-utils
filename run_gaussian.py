@@ -1,5 +1,6 @@
-# Launch g09 scripts
+#!/home/tetsuo420/.virtualenvs/modelling/bin/python
 
+# Launch g09 scripts
 import os
 import numpy as np
 import subprocess as sb
