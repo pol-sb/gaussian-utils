@@ -158,8 +158,10 @@ def run_calculation(file_list, cwd):
 
         output_file = f"{fil[:-4]}_res"
 
+        gauss_path = os.environ.get("GAUSS_EXEDIR")
+
         sb.call(
-            ["/home/tetsuo420/.g09/g09", f"{cwd}/{fil}", f"{cwd}/{output_file}"]
+            [f"{gauss_path}/g09", f"{cwd}/{fil}", f"{cwd}/{output_file}"]
         )
         t2 = time.time()
         duration = get_duration(t1, t2)
