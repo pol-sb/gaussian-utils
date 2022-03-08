@@ -196,7 +196,19 @@ def get_free(text):
 def get_freqs(text):
     freq_list = []
     freq_line = "".join(DFT_FREQ.findall(text))
-    freq_list = [float(freq) for freq in freq_line.split()]
+    try:
+        freq_list = [float(freq) for freq in freq_line.split()]
+    except ValueError:
+        freq_list = [freq for freq in freq_line.split()]
+        for freq in freq_list:
+            if "-" in freq and not freq.startswith("-"):
+                tmp_freq = freq.split("-")
+                tmp_freq[1] = "-"+tmp_freq[1]
+                print('tmp_freq: ', tmp_freq)
+                freq_ind = freq_list.index(freq)
+        new_list = freq_list[:freq_ind]+tmp_freq+freq_list[freq_ind+1:]
+
+        freq_list = [float(freq) for freq in new_list]
 
     return freq_list
 
