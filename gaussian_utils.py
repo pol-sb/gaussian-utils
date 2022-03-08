@@ -118,7 +118,8 @@ def print_results(file, result_dict):
             print_color("    This geometry is a minima.", "blue")
 
         else:
-            print("\n\tThere are imaginary frequencies.")
+            print("\n    There are imaginary frequencies.")
+            print_color("    This geometry might be a TS.", "blue")
 
     print_color(f"\n    Calculation '{file}' done.", "green")
 
