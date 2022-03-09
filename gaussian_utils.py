@@ -34,7 +34,9 @@ def get_calc_type(file):
         calc_type = re.search(INP_LINE_RE, text)
         # calc_type = INP_LINE_RE.findall(text)
         line = calc_type.group(1)
-        line = line.replace("#", "").strip().replace("\n","")
+        line = (
+            line.replace("#", "").strip().replace("\n", "").replace("  ", " ")
+        )
         # print(line[0].replace("#", "").strip())
 
         return line
@@ -84,9 +86,12 @@ def parse_calc_type(file: str, job_line: str):
     return result_dict
 
 
-def print_results(file, result_dict):
+def print_results(file, result_dict, job_line):
     print_color(f"\n - Results for calculation '{file}':", "green")
     res_avail = result_dict.keys()
+
+    print_color("\n    Calculation Type:", "yellow")
+    print("   ", job_line)
 
     if "Energy" in res_avail:
         print_color("\n    Energetics:", "yellow")

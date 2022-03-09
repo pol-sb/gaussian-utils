@@ -39,7 +39,7 @@ if __name__ == "__main__":
         if termination == "Normal":
             job_line = gu.get_calc_type(output_file)
             res_dict = gu.parse_calc_type(output_file, job_line)
-            gu.print_results(output_file, res_dict)
+            gu.print_results(output_file, res_dict, job_line)
         else:
             errf_list.append(fil)
 
