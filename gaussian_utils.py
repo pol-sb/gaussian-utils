@@ -12,7 +12,7 @@ DFT_FREQ = re.compile(r"Frequencies -- (.*)")
 FR_RE = re.compile(r"Free Energies=\s+([^\n]+\d+\.\d+)")
 ENT_RE = re.compile(r"Enthalpies=\s+([^\n]+\d+\.\d+)")
 INP_LINE_RE = re.compile(r"----\n \#(.*)\n-*")
-TERM_RE = re.compile(r"Normal termination of Gaussian 09")
+TERM_RE = re.compile(r"Normal termination of Gaussian")
 AM1_RE = re.compile(r"")
 
 
@@ -160,10 +160,16 @@ def run_calculation(file_list, cwd):
         output_file = f"{fil[:-4]}_res"
 
         gauss_path = os.environ.get("GAUSS_EXEDIR")
+        gauss_ver = os.environ.get("GAUSS_VERSION")
 
         sb.call(
-            [f"{gauss_path}/g09", f"{cwd}/{fil}", f"{cwd}/{output_file}"]
+            [
+                f"{gauss_path}/{gauss_ver}",
+                f"{cwd}/{fil}",
+                f"{cwd}/{output_file}",
+            ]
         )
+
         t2 = time.time()
         duration = get_duration(t1, t2)
         print(f"Done - Elapsed time {duration}.\n")
@@ -203,10 +209,10 @@ def get_freqs(text):
         for freq in freq_list:
             if "-" in freq and not freq.startswith("-"):
                 tmp_freq = freq.split("-")
-                tmp_freq[1] = "-"+tmp_freq[1]
-                print('tmp_freq: ', tmp_freq)
+                tmp_freq[1] = "-" + tmp_freq[1]
+                print("tmp_freq: ", tmp_freq)
                 freq_ind = freq_list.index(freq)
-        new_list = freq_list[:freq_ind]+tmp_freq+freq_list[freq_ind+1:]
+        new_list = freq_list[:freq_ind] + tmp_freq + freq_list[freq_ind + 1 :]
 
         freq_list = [float(freq) for freq in new_list]
 
