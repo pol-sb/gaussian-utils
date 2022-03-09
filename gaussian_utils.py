@@ -11,7 +11,7 @@ DFT_RE = re.compile(r"SCF Done:.*=\s+([^\n]+\d+\.\d+)")
 DFT_FREQ = re.compile(r"Frequencies -- (.*)")
 FR_RE = re.compile(r"Free Energies=\s+([^\n]+\d+\.\d+)")
 ENT_RE = re.compile(r"Enthalpies=\s+([^\n]+\d+\.\d+)")
-INP_LINE_RE = re.compile(r"----\n \#(.*)\n-*")
+INP_LINE_RE = re.compile(r"----\n \#(.*\n?.*)-*")
 TERM_RE = re.compile(r"Normal termination of Gaussian")
 AM1_RE = re.compile(r"")
 
@@ -34,7 +34,7 @@ def get_calc_type(file):
         calc_type = re.search(INP_LINE_RE, text)
         # calc_type = INP_LINE_RE.findall(text)
         line = calc_type.group(1)
-        line = line.replace("#", "").strip()
+        line = line.replace("#", "").strip().replace("\n","")
         # print(line[0].replace("#", "").strip())
 
         return line
