@@ -10,10 +10,15 @@ import pprint as pp
 DFT_RE = re.compile(r"SCF Done:.*=\s+([^\n]+\d+\.\d+)")
 DFT_FREQ = re.compile(r"Frequencies -- (.*)")
 FR_RE = re.compile(r"Free Energies=\s+([^\n]+\d+\.\d+)")
+EEL_ZPE = re.compile(
+    r"Sum of electronic and zero-point Energies=\s+([^\n]+\d+\.\d+)"
+)
+ZPE_RE = re.compile(r"Zero-point correction=\s+([^\n]+\d+\.\d+)")
 ENT_RE = re.compile(r"Enthalpies=\s+([^\n]+\d+\.\d+)")
 INP_LINE_RE = re.compile(r"----\n \#(.*\n?.*)-*")
 TERM_RE = re.compile(r"Normal termination of Gaussian")
 AM1_RE = re.compile(r"")
+WRD_LIN = "--------------------------------------------------"
 
 
 def get_calc_type(file):
@@ -35,7 +40,11 @@ def get_calc_type(file):
         # calc_type = INP_LINE_RE.findall(text)
         line = calc_type.group(1)
         line = (
-            line.replace("#", "").strip().replace("\n", "").replace("  ", " ")
+            line.replace("#", "")
+            .strip()
+            .replace("\n", "")
+            .replace("  ", " ")
+            .replace(WRD_LIN, "")
         )
         # print(line[0].replace("#", "").strip())
 
@@ -76,12 +85,18 @@ def parse_calc_type(file: str, job_line: str):
         enthalp = get_enthalpy(text)
         result_dict["Enthalpy"] = enthalp
 
-        free = get_enthalpy(text)
+        free = get_free(text)
         result_dict["Free Energy"] = free
 
     if "freq" in job_line:
         freqs = get_freqs(text)
         result_dict["Frequencies"] = freqs
+
+        zpe = get_zpe(text)
+        result_dict["ZPE"] = zpe
+
+        ee_zpe = get_eezpe(text)
+        result_dict["EEZPE"] = ee_zpe
 
     return result_dict
 
@@ -95,9 +110,27 @@ def print_results(file, result_dict, job_line):
 
     if "Energy" in res_avail:
         print_color("\n    Energetics:", "yellow")
-        print(f"    Electronic Energy: {result_dict['Energy']}")
-        print(f"    Enthalpy: {result_dict['Enthalpy']}")
-        print(f"    Free Energy: {result_dict['Free Energy']} ")
+        print(
+            f"    Electronic Energy:       {result_dict['Energy']:.6f} Ha   "
+            f"  ({ha_to_kcalmol(result_dict['Energy']):.3e} kcal/mol)"
+        )
+        print(
+            f"    ZPE:                      {result_dict['ZPE']} Ha   "
+            f"    ({ha_to_kcalmol(result_dict['ZPE']):.3e} kcal/mol)"
+        )
+        print(
+            f"    Electronic Energy + ZPE: {result_dict['EEZPE']} Ha   "
+            f"  ({ha_to_kcalmol(result_dict['EEZPE']):.3e} kcal/mol)"
+        )
+        print(
+            f"    Enthalpy:                {result_dict['Enthalpy']} Ha    "
+            f" ({ha_to_kcalmol(result_dict['Enthalpy']):.3e} kcal/mol)"
+        )
+
+        print(
+            f"    Free Energy:             {result_dict['Free Energy']} Ha    "
+            f" ({ha_to_kcalmol(result_dict['Free Energy']):.3e} kcal/mol)"
+        )
 
     if "Frequencies" in res_avail:
         print_color("\n    Frequencies:", "yellow")
@@ -202,6 +235,20 @@ def get_enthalpy(text):
 def get_free(text):
     free_val = float(FR_RE.findall(text)[-1])
     return free_val
+
+
+def get_eezpe(text):
+    ee_zpe = float(EEL_ZPE.findall(text)[-1])
+    return ee_zpe
+
+
+def get_zpe(text):
+    zpe = float(ZPE_RE.findall(text)[-1])
+    return zpe
+
+
+def ha_to_kcalmol(value: float):
+    return value * 627.503
 
 
 def get_freqs(text):

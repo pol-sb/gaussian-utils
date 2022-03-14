@@ -35,13 +35,13 @@ if __name__ == "__main__":
         if termination == "Normal":
             job_line = gu.get_calc_type(output_file)
             res_dict = gu.parse_calc_type(output_file, job_line)
-            gu.print_results(output_file, res_dict)
-        else:
-            gu.print_color(
-                f" - [!] Calculation for file {output_file} Terminated with"
-                " ERRORS.",
-                "red",
-            )
+            gu.print_results(output_file, res_dict, job_line)
+        # else:
+        #     gu.print_color(
+        #         f" - [!] Calculation for file {output_file} Terminated with"
+        #         " ERRORS.",
+        #         "red",
+        #     )
 
     res_list = [fi for fi in os.listdir() if fi.endswith(".log")]
     chk_list = [fi for fi in os.listdir() if fi.endswith(".chk")]
