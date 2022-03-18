@@ -6,6 +6,7 @@ import subprocess as sb
 import time
 import re
 import pprint as pp
+import plotext as plt
 
 DFT_RE = re.compile(r"SCF Done:.*=\s+([^\n]+\d+\.\d+)")
 DFT_FREQ = re.compile(r"Frequencies -- (.*)")
@@ -18,7 +19,9 @@ ENT_RE = re.compile(r"Enthalpies=\s+([^\n]+\d+\.\d+)")
 INP_LINE_RE = re.compile(r"----\n \#(.*\n?.*)-*")
 TERM_RE = re.compile(r"Normal termination of Gaussian")
 AM1_RE = re.compile(r"")
+IRC_RE = re.compile(r"SCF Done:.*=  (-?\d*\.?\d*)")
 WRD_LIN = "--------------------------------------------------"
+IRC_ERR1 = "This type of calculation cannot be archived."
 
 
 def get_calc_type(file):
@@ -98,7 +101,40 @@ def parse_calc_type(file: str, job_line: str):
         ee_zpe = get_eezpe(text)
         result_dict["EEZPE"] = ee_zpe
 
+    if "irc" in job_line:
+        result_dict["IRC"] = gather_irc(text)
+
     return result_dict
+
+
+def gather_irc(text):
+    irc_ener_str = DFT_RE.findall(text)
+    irc_energs = [float(val) for val in irc_ener_str]
+    irc_len = len(irc_energs)
+
+    sort_irc = (
+        list(reversed(irc_energs[: int(irc_len / 2)]))
+        + irc_energs[int(irc_len / 2) + 1 :]
+    )
+
+    return sort_irc
+
+
+def plot_irc(ene_list):
+
+    plt.clf()
+    plt.limit_size(False, False)
+    plt.plot_size(80, 20)
+    plt.canvas_color("default")
+    plt.axes_color("default")
+    plt.ticks_color("white")
+    plt.xlabel("Step")
+    plt.ylabel("Energy (Ha)")
+
+    plt.scatter(ene_list)
+    plt.title("IRC")
+
+    plt.show()
 
 
 def print_results(file, result_dict, job_line):
@@ -131,6 +167,9 @@ def print_results(file, result_dict, job_line):
             f"    Free Energy:             {result_dict['Free Energy']} Ha    "
             f" ({ha_to_kcalmol(result_dict['Free Energy']):.3e} kcal/mol)"
         )
+
+    if "IRC" in res_avail:
+        plot_irc(result_dict["IRC"])
 
     if "Frequencies" in res_avail:
         print_color("\n    Frequencies:", "yellow")
@@ -170,6 +209,7 @@ def check_termination(output):
     normal_flag = len(TERM_RE.findall(text))
 
     if normal_flag:
+        # and (IRC_ERR1 not in text):
         termination = "Normal"
     else:
         termination = "Error"
