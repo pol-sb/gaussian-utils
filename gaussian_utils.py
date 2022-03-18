@@ -1,11 +1,12 @@
 # Contains g09 utilities
 
 import os
-import numpy as np
+import re
 import subprocess as sb
 import time
-import re
-import pprint as pp
+from statistics import median
+
+import numpy as np
 import plotext as plt
 
 DFT_RE = re.compile(r"SCF Done:.*=\s+([^\n]+\d+\.\d+)")
@@ -112,10 +113,20 @@ def gather_irc(text):
     irc_energs = [float(val) for val in irc_ener_str]
     irc_len = len(irc_energs)
 
-    sort_irc = (
-        list(reversed(irc_energs[: int(irc_len / 2)]))
-        + irc_energs[int(irc_len / 2) + 1 :]
-    )
+    if irc_len % 2 == 0:
+        half1 = list(reversed(irc_energs[: (irc_len // 2)]))
+        half2 = irc_energs[(irc_len // 2):]
+        sort_irc = half1 + half2
+
+    else:
+        half = median(range(irc_len))
+        print('half: ', half)
+        half_v = irc_energs[half]
+
+        half1 = list(reversed(irc_energs[:half+1]))
+        half2 = irc_energs[half+1:]
+
+        sort_irc = half1 + half2 
 
     return sort_irc
 
