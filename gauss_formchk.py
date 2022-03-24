@@ -7,6 +7,7 @@ if __name__ == "__main__":
 
     if len(file_list) == 0:
         gu.print_color("\nNo '.chk' files found. Aborting.\n", "red")
+        quit()
 
     print("\nConverting the following '.chk' files into '.fchk':")
     print(file_list)
