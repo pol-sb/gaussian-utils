@@ -12,9 +12,7 @@ import plotext as plt
 DFT_RE = re.compile(r"SCF Done:.*=\s+([^\n]+\d+\.\d+)")
 DFT_FREQ = re.compile(r"Frequencies -- (.*)")
 FR_RE = re.compile(r"Free Energies=\s+([^\n]+\d+\.\d+)")
-EEL_ZPE = re.compile(
-    r"Sum of electronic and zero-point Energies=\s+([^\n]+\d+\.\d+)"
-)
+EEL_ZPE = re.compile(r"Sum of electronic and zero-point Energies=\s+([^\n]+\d+\.\d+)")
 ZPE_RE = re.compile(r"Zero-point correction=\s+([^\n]+\d+\.\d+)")
 ENT_RE = re.compile(r"Enthalpies=\s+([^\n]+\d+\.\d+)")
 INP_LINE_RE = re.compile(r"----\n \#(.*\n?.*)-*")
@@ -31,9 +29,7 @@ def get_calc_type(file):
         with open(file, "r") as f:
             fil_lines = f.readlines()
             calc_type = [
-                line.replace("#", "").strip()
-                for line in fil_lines
-                if "#" in line
+                line.replace("#", "").strip() for line in fil_lines if "#" in line
             ]
             return calc_type[0]
 
@@ -115,18 +111,18 @@ def gather_irc(text):
 
     if irc_len % 2 == 0:
         half1 = list(reversed(irc_energs[: (irc_len // 2)]))
-        half2 = irc_energs[(irc_len // 2):]
+        half2 = irc_energs[(irc_len // 2) :]
         sort_irc = half1 + half2
 
     else:
         half = median(range(irc_len))
-        print('half: ', half)
+        print("half: ", half)
         half_v = irc_energs[half]
 
-        half1 = list(reversed(irc_energs[:half+1]))
-        half2 = irc_energs[half+1:]
+        half1 = list(reversed(irc_energs[: half + 1]))
+        half2 = irc_energs[half + 1 :]
 
-        sort_irc = half1 + half2 
+        sort_irc = half1 + half2
 
     return sort_irc
 
@@ -193,10 +189,7 @@ def print_results(file, result_dict, job_line):
 
         print(
             "    "
-            + str(freq_arr)
-            .replace("\n", "\n   ")
-            .replace("[", "")
-            .replace("]", "")
+            + str(freq_arr).replace("\n", "\n   ").replace("[", "").replace("]", "")
         )
 
         n_imagin = np.count_nonzero(np.array(result_dict["Frequencies"]) < 0)
@@ -226,9 +219,7 @@ def check_termination(output):
         termination = "Error"
 
     if termination != "Normal":
-        print_color(
-            f"\n - [!] Calculation '{output}' terminated with ERRORS.", "red"
-        )
+        print_color(f"\n - [!] Calculation '{output}' terminated with ERRORS.", "red")
 
     return termination
 
@@ -334,9 +325,23 @@ def print_color(text: str, color: str):
     print(f"{d_col[color]}{text}{d_col['normal']}")
 
 
+def formchk(filelist: list, cwd: str):
+    gauss_path = os.environ.get("GAUSS_EXEDIR")
+
+    for chk_fil in filelist:
+        fil_noext = chk_fil[:-4]
+        sb.call(
+            [
+                f"{gauss_path}/formchk",
+                f"{cwd}/{chk_fil}",
+                f"{cwd}/{fil_noext}.fchk",
+            ],
+            stdout=sb.DEVNULL,
+        )
+
+
 if __name__ == "__main__":
     print_color(
-        "This file is intended to be used as a module, please only use it for"
-        " imports",
+        "This file is intended to be used as a module, please only use it on imports",
         "red",
     )
